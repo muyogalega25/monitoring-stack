@@ -7,7 +7,7 @@ set -e
 # - Installs Node Exporter as a systemd service
 # ---------------------------
 
-REPO_URL="${repo_url}"
+repo_url="${repo_url}"
 
 apt-get update -y
 apt-get install -y git curl ca-certificates
