@@ -7,9 +7,9 @@ set -e
 # - Clones repo and installs Prometheus + Alertmanager + Grafana
 # ---------------------------
 
-REPO_URL="${repo_url}"
-SLACK_WEBHOOK_URL="${slack_webhook_url}"
-AWS_REGION="${aws_region}"
+repo_url="${repo_url}"
+slack_webhook_url="${slack_webhook_url}"
+aws_region="${aws_region}"
 
 # Basic packages we need to clone repo + download tarballs
 apt-get update -y

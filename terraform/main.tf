@@ -94,13 +94,13 @@ resource "aws_iam_instance_profile" "prom_sd_profile" {
 # -------------------------
 locals {
   monitoring_user_data = templatefile("${path.module}/user_data/monitoring_user_data.sh", {
-    REPO_URL          = var.repo_url
-    SLACK_WEBHOOK_URL = var.slack_webhook_url
-    AWS_REGION        = var.aws_region
+    repo_url          = var.repo_url
+    slack_webhook_url = var.slack_webhook_url
+    aws_region        = var.aws_region
   })
 
   app_user_data = templatefile("${path.module}/user_data/app_user_data.sh", {
-    REPO_URL = var.repo_url
+    repo_url = var.repo_url
   })
 }
 
