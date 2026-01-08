@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+
+rule_files:
+  - /etc/prometheus/rules.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["127.0.0.1:9093"]
+
+scrape_configs:
+  # Prometheus scrapes itself
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["127.0.0.1:9090"]
+
+  # Discover app servers automatically by AWS tags, scrape Node Exporter on :9100
+  - job_name: "app-servers-node"
+    ec2_sd_configs:
+      - region: "__AWS_REGION__"
+        port: 9100
+
+    # Keep only instances tagged Role=app
+    relabel_configs:
+      - source_labels: [__meta_ec2_tag_Role]
+        regex: app
+        action: keep
+
+      # Nice labels in Prometheus UI
+      - source_labels: [__meta_ec2_instance_id]
+        target_label: instance_id
+      - source_labels: [__meta_ec2_private_ip]
+        target_label: private_ip
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: name
