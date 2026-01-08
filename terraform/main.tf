@@ -90,17 +90,17 @@ resource "aws_iam_instance_profile" "prom_sd_profile" {
 }
 
 # -------------------------
-# User data templates (OPTION B: scripts use ${REPO_URL}, etc.)
+# User data templates (scripts use ${REPO_URL}, ${SLACK_WEBHOOK_URL}, ${AWS_REGION})
 # -------------------------
 locals {
   monitoring_user_data = templatefile("${path.module}/user_data/monitoring_user_data.sh", {
-    repo_url          = var.repo_url
-    slack_webhook_url = var.slack_webhook_url
-    aws_region        = var.aws_region
+    REPO_URL          = var.repo_url
+    SLACK_WEBHOOK_URL = var.slack_webhook_url
+    AWS_REGION        = var.aws_region
   })
 
   app_user_data = templatefile("${path.module}/user_data/app_user_data.sh", {
-    repo_url = var.repo_url
+    REPO_URL = var.repo_url
   })
 }
 
@@ -186,7 +186,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_node_exporter_from_monitor
 # -------------------------
 resource "aws_instance" "monitoring" {
   ami                         = data.aws_ami.ubuntu_2204.id
-  instance_type               = var.instance_type
+  instance_type               = var.monitoring_instance_type
   key_name                    = var.key_name
   subnet_id                   = local.default_subnet_id
   vpc_security_group_ids      = [aws_security_group.monitoring_sg.id]
@@ -202,12 +202,12 @@ resource "aws_instance" "monitoring" {
 }
 
 # -------------------------
-# Two app instances
+# App instances
 # -------------------------
 resource "aws_instance" "app" {
-  count                       = 2
+  count                       = var.app_instance_count
   ami                         = data.aws_ami.ubuntu_2204.id
-  instance_type               = var.instance_type
+  instance_type               = var.app_instance_type
   key_name                    = var.key_name
   subnet_id                   = local.default_subnet_id
   vpc_security_group_ids      = [aws_security_group.app_sg.id]
