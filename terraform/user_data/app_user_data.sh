@@ -16,7 +16,7 @@ mkdir -p /opt
 cd /opt
 
 rm -rf monitoring-stack-aws || true
-git clone "${REPO_URL}" monitoring-stack-aws
+git clone "${repo_url}" monitoring-stack-aws
 cd monitoring-stack-aws
 
 bash scripts/install_node_exporter.sh
