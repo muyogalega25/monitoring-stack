@@ -23,13 +23,13 @@ variable "slack_webhook_url" {
 variable "monitoring_instance_type" {
   type        = string
   description = "EC2 instance type for monitoring server (Free Tier eligible)"
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "app_instance_type" {
   type        = string
   description = "EC2 instance type for app servers (Free Tier eligible)"
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "app_instance_count" {
