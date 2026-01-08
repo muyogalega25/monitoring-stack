@@ -20,7 +20,6 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# Get all subnets in the default VPC
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -28,7 +27,6 @@ data "aws_subnets" "default" {
   }
 }
 
-# Pick one subnet deterministically (sorted) to avoid random ordering differences
 locals {
   default_subnet_id = sort(data.aws_subnets.default.ids)[0]
 }
@@ -92,17 +90,17 @@ resource "aws_iam_instance_profile" "prom_sd_profile" {
 }
 
 # -------------------------
-# User data templates
+# User data templates (OPTION B: scripts use ${REPO_URL}, etc.)
 # -------------------------
 locals {
   monitoring_user_data = templatefile("${path.module}/user_data/monitoring_user_data.sh", {
-    repo_url          = var.repo_url
-    slack_webhook_url = var.slack_webhook_url
-    aws_region        = var.aws_region
+    REPO_URL          = var.repo_url
+    SLACK_WEBHOOK_URL = var.slack_webhook_url
+    AWS_REGION        = var.aws_region
   })
 
   app_user_data = templatefile("${path.module}/user_data/app_user_data.sh", {
-    repo_url = var.repo_url
+    REPO_URL = var.repo_url
   })
 }
 
@@ -152,7 +150,7 @@ resource "aws_security_group" "monitoring_sg" {
   }
 }
 
-# App SG: allow Node Exporter ONLY from monitoring SG
+# App SG: SSH open (demo), Node Exporter allowed ONLY from monitoring SG (via separate rule resource)
 resource "aws_security_group" "app_sg" {
   name        = "app-sg"
   description = "App SG"
@@ -165,20 +163,22 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Recommended: use source_security_group_id instead of security_groups
-  ingress {
-    from_port                = 9100
-    to_port                  = 9100
-    protocol                 = "tcp"
-    source_security_group_id = aws_security_group.monitoring_sg.id
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+# Allow Node Exporter (9100) from Monitoring SG -> App SG
+resource "aws_vpc_security_group_ingress_rule" "allow_node_exporter_from_monitoring" {
+  security_group_id            = aws_security_group.app_sg.id
+  referenced_security_group_id = aws_security_group.monitoring_sg.id
+  ip_protocol                  = "tcp"
+  from_port                    = 9100
+  to_port                      = 9100
+  description                  = "Allow Node Exporter from monitoring server"
 }
 
 # -------------------------
